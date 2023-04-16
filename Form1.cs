@@ -16,10 +16,7 @@ namespace GaleriaImagenes
             InitializeComponent();
         }
 
-        private void button4_Click(object sender, EventArgs e)
-        {
-
-        }
+        
 
         private void btnseleccionar_Click(object sender, EventArgs e)
         {
@@ -71,7 +68,7 @@ namespace GaleriaImagenes
         {
             RtxtDescripcion.Text = String.Empty;
             txtLugar.Text = String.Empty;
-            lblFecha.Text = String.Empty;
+            txtBuscar.Text = String.Empty;
             PbImage.Image = null;
 
         }
@@ -188,7 +185,7 @@ namespace GaleriaImagenes
                     nuevaImagen.Date = date;
 
                     Crud nuevoRegistro = new();
-                    nuevoRegistro.Update(nuevaImagen,Convert.ToInt32(id));
+                    nuevoRegistro.Update(nuevaImagen, Convert.ToInt32(id));
 
 
                     limpiarCampos();
@@ -198,9 +195,49 @@ namespace GaleriaImagenes
                 {
                     MessageBox.Show("No se pudo");
 
+                }
+            }
+        }
+
+        private void btnDelete_Click(object sender, EventArgs e)
+        {
+            var id = txtBuscar.Text;
+
+            if (!(id is null))
+            {           
+                try
+                {
+                    Crud nuevoRegistro = new();
+                    nuevoRegistro.Delete(Convert.ToInt32(id));
+                    limpiarCampos();
+                }
+                catch (DbException ex)
+                {
+                    MessageBox.Show("No se pudo: "+ex);
+
                     throw;
                 }
             }
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void lblLugar_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnliampia_Click(object sender, EventArgs e)
+        {
+            limpiarCampos();
+        }
+
+        private void lblclose_Click(object sender, EventArgs e)
+        {
+            System.Windows.Forms.Application.Exit();
         }
     }
 }

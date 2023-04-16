@@ -44,6 +44,9 @@
             txtBuscar = new TextBox();
             dateTimePicker1 = new DateTimePicker();
             btnActualizar = new Button();
+            bunifuElipse1 = new Bunifu.Framework.UI.BunifuElipse(components);
+            btnDelete = new Button();
+            lblclose = new Label();
             ((System.ComponentModel.ISupportInitialize)PbImage).BeginInit();
             SuspendLayout();
             // 
@@ -57,7 +60,7 @@
             // btnseleccionar
             // 
             btnseleccionar.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
-            btnseleccionar.Location = new Point(531, 335);
+            btnseleccionar.Location = new Point(451, 335);
             btnseleccionar.Name = "btnseleccionar";
             btnseleccionar.Size = new Size(78, 23);
             btnseleccionar.TabIndex = 0;
@@ -68,7 +71,7 @@
             // btnGuardar
             // 
             btnGuardar.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
-            btnGuardar.Location = new Point(301, 335);
+            btnGuardar.Location = new Point(268, 335);
             btnGuardar.Name = "btnGuardar";
             btnGuardar.Size = new Size(75, 23);
             btnGuardar.TabIndex = 1;
@@ -79,17 +82,18 @@
             // btnliampia
             // 
             btnliampia.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
-            btnliampia.Location = new Point(426, 335);
+            btnliampia.Location = new Point(360, 335);
             btnliampia.Name = "btnliampia";
             btnliampia.Size = new Size(75, 23);
             btnliampia.TabIndex = 2;
             btnliampia.Text = "Limpiar";
             btnliampia.UseVisualStyleBackColor = true;
+            btnliampia.Click += btnliampia_Click;
             // 
             // btBuscar
             // 
             btBuscar.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
-            btBuscar.Location = new Point(12, 308);
+            btBuscar.Location = new Point(17, 310);
             btBuscar.Name = "btBuscar";
             btBuscar.Size = new Size(75, 23);
             btBuscar.TabIndex = 3;
@@ -139,6 +143,7 @@
             lblLugar.Size = new Size(43, 17);
             lblLugar.TabIndex = 9;
             lblLugar.Text = "Lugar";
+            lblLugar.Click += lblLugar_Click;
             // 
             // txtLugar
             // 
@@ -174,7 +179,8 @@
             // 
             // btnActualizar
             // 
-            btnActualizar.Location = new Point(425, 383);
+            btnActualizar.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
+            btnActualizar.Location = new Point(545, 335);
             btnActualizar.Name = "btnActualizar";
             btnActualizar.Size = new Size(75, 23);
             btnActualizar.TabIndex = 15;
@@ -182,11 +188,42 @@
             btnActualizar.UseVisualStyleBackColor = true;
             btnActualizar.Click += btnActualizar_Click;
             // 
+            // bunifuElipse1
+            // 
+            bunifuElipse1.ElipseRadius = 5;
+            bunifuElipse1.TargetControl = this;
+            // 
+            // btnDelete
+            // 
+            btnDelete.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
+            btnDelete.Location = new Point(638, 335);
+            btnDelete.Name = "btnDelete";
+            btnDelete.Size = new Size(75, 23);
+            btnDelete.TabIndex = 16;
+            btnDelete.Text = "Delete";
+            btnDelete.UseVisualStyleBackColor = true;
+            btnDelete.Click += btnDelete_Click;
+            // 
+            // lblclose
+            // 
+            lblclose.AutoSize = true;
+            lblclose.Font = new Font("Segoe UI", 8.25F, FontStyle.Regular, GraphicsUnit.Point);
+            lblclose.Image = Properties.Resources.Close__2023_04_15_030214;
+            lblclose.Location = new Point(755, 9);
+            lblclose.Name = "lblclose";
+            lblclose.Size = new Size(33, 13);
+            lblclose.TabIndex = 17;
+            lblclose.Text = "close";
+            lblclose.Click += lblclose_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
+            BackColor = SystemColors.ActiveCaption;
             ClientSize = new Size(800, 450);
+            Controls.Add(lblclose);
+            Controls.Add(btnDelete);
             Controls.Add(btnActualizar);
             Controls.Add(dateTimePicker1);
             Controls.Add(txtBuscar);
@@ -200,13 +237,16 @@
             Controls.Add(btnliampia);
             Controls.Add(btnGuardar);
             Controls.Add(btnseleccionar);
+            FormBorderStyle = FormBorderStyle.None;
             Name = "Form1";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Form1";
+            Load += Form1_Load;
             ((System.ComponentModel.ISupportInitialize)PbImage).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
+
 
         #endregion
 
@@ -225,5 +265,8 @@
         private RichTextBox RtxtDescripcion;
         private DateTimePicker dateTimePicker1;
         private Button btnActualizar;
+        private Label lblclose;
+        private Button btnDelete;
+        private Bunifu.Framework.UI.BunifuElipse bunifuElipse1;
     }
 }

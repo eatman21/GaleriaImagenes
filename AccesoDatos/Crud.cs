@@ -66,5 +66,36 @@ namespace GaleriaImagenes.AccesoDatos
             }
             MessageBox.Show("Se ha actualizado un registro.");
         }
+        public void Delete(int id)
+        {
+            var buscarRegistro = _contextoDatos.Image_gallery.FirstOrDefault(elimina=> elimina.Id == id);
+
+            try
+            {
+
+                if (!(buscarRegistro is null))
+                {
+                    if (id == buscarRegistro.Id)
+                    {
+                        _contextoDatos.Image_gallery.Remove(buscarRegistro);
+                        _contextoDatos.SaveChanges();
+
+                        MessageBox.Show("Eliminado el registro:" + buscarRegistro);
+
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("No se encontró el registro:" + buscarRegistro);
+
+                }
+            }
+            catch (MySqlException ex)
+            {
+                MessageBox.Show("Ha ocurrido un error al actualizar." + ex);
+            }
+            MessageBox.Show("Se ha eliminado un registro.");
+
+        }
     }
 }
