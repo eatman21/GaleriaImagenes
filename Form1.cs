@@ -1,22 +1,17 @@
-using GaleriaImagenes.AccesoDatos;
-using GaleriaImagenes.Entidades;
-using GaleriaImagenes.MyContext;
-using System.Data.Common;
-using System.Drawing.Imaging;
+using GaleriaImagenes.BusinessLogic;
 
 namespace GaleriaImagenes
 {
     public partial class Form1 : Form
     {
-        private readonly AppDbContext dbContext = new();
+        private readonly ImageGalleryService _imageGalleryService;
         private int buscarId;
 
         public Form1()
         {
             InitializeComponent();
+            _imageGalleryService = new ImageGalleryService();
         }
-
-        
 
         private void btnseleccionar_Click(object sender, EventArgs e)
         {
@@ -72,150 +67,184 @@ namespace GaleriaImagenes
             PbImage.Image = null;
 
         }
-        private void btnGuardar_Click(object sender, EventArgs e)
+        private async void btnGuardar_Click(object sender, EventArgs e)
         {
             if (Validar() == true)
             {
-                MemoryStream ms = new MemoryStream();
-                PbImage.Image.Save(ms, ImageFormat.Jpeg);
-                byte[] convertirImagen = ms.ToArray();
-
-
                 try
                 {
                     DateTime date = dateTimePicker1.Value;
 
-                    Image_gallery nuevaImagen = new();
-                    nuevaImagen.Image = convertirImagen;
-                    nuevaImagen.Description = RtxtDescripcion.Text;
-                    nuevaImagen.Place = txtLugar.Text;
-                    nuevaImagen.Date = date;
+                    var result = await _imageGalleryService.CreateImageGalleryAsync(
+                        PbImage.Image,
+                        RtxtDescripcion.Text,
+                        txtLugar.Text,
+                        date
+                    );
 
-                    Crud nuevoRegistro = new();
-                    nuevoRegistro.Create(nuevaImagen);
-
-
-                    limpiarCampos();
-
-                }
-                catch (DbException ex)
-                {
-                    MessageBox.Show("No se pudo");
-
-                    throw;
-                }
-            }
-        }
-
-        private void btBuscar_Click(object sender, EventArgs e)
-        {
-
-
-            Image_gallery buscarImagenId = new Image_gallery();
-            var id = txtBuscar.Text;
-
-            if (txtBuscar.Text == string.Empty)
-            {
-                MessageBox.Show("Debes buscar un ID" + id);
-                txtBuscar.Focus();
-            }
-            else
-            {
-                try
-                {
-                    var traerDato = dbContext.Image_gallery.Select(d => new
+                    if (result.Success)
                     {
-                        Id = d.Id,
-                        Image = d.Image,
-                        Description = d.Description,
-                        Place = d.Place,
-                        Date = d.Date
-                    }).FirstOrDefault(i => i.Id == Convert.ToInt32(id));
-
-                    if ((traerDato == null) || (traerDato.Id == 0))
-                    {
-                        MessageBox.Show("No se encontrado un registro en la consulta.");
+                        MessageBox.Show(result.Message, "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         limpiarCampos();
                     }
                     else
                     {
-                        txtLugar.Text = traerDato.Place.ToString();
-                        RtxtDescripcion.Text = traerDato.Description.ToString();
-                        dateTimePicker1.Value = traerDato.Date;
-                        try
-                        {
-                            MemoryStream ms = new MemoryStream((byte[])traerDato.Image);
-                            Bitmap bm = new Bitmap(ms);
-                            PbImage.Image = bm;
-                        }
-                        catch (Exception)
-                        {
-                            MessageBox.Show("Hubo un problema al recuperar la imagen.\nEl formato debe ser correcto.");
-                        }
-                        buscarId = int.Parse(traerDato.Id.ToString());
+                        MessageBox.Show(result.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Ha ocurrido el error: " + ex);
-
+                    MessageBox.Show($"Unexpected error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
 
-        private void btnActualizar_Click(object sender, EventArgs e)
+        private async void btBuscar_Click(object sender, EventArgs e)
         {
             var id = txtBuscar.Text;
 
+            if (string.IsNullOrWhiteSpace(txtBuscar.Text))
+            {
+                MessageBox.Show("Debes buscar un ID", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtBuscar.Focus();
+                return;
+            }
+
+            if (!int.TryParse(id, out int imageId))
+            {
+                MessageBox.Show("ID debe ser un número válido", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtBuscar.Focus();
+                return;
+            }
+
+            try
+            {
+                var result = await _imageGalleryService.GetImageGalleryByIdAsync(imageId);
+
+                if (!result.Success || result.Data == null)
+                {
+                    MessageBox.Show(result.Message, "Not Found", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    limpiarCampos();
+                }
+                else
+                {
+                    var traerDato = result.Data;
+                    txtLugar.Text = traerDato.Place;
+                    RtxtDescripcion.Text = traerDato.Description;
+                    dateTimePicker1.Value = traerDato.Date;
+
+                    var bitmapResult = _imageGalleryService.ConvertByteArrayToBitmap(traerDato.Image);
+                    if (bitmapResult.Success)
+                    {
+                        PbImage.Image = bitmapResult.Data;
+                    }
+                    else
+                    {
+                        MessageBox.Show(bitmapResult.Message, "Image Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+
+                    buscarId = traerDato.Id;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ha ocurrido el error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private async void btnActualizar_Click(object sender, EventArgs e)
+        {
+            var id = txtBuscar.Text;
+
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                MessageBox.Show("Debes indicar un ID para actualizar", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtBuscar.Focus();
+                return;
+            }
+
+            if (!int.TryParse(id, out int imageId))
+            {
+                MessageBox.Show("ID debe ser un número válido", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtBuscar.Focus();
+                return;
+            }
+
             if (Validar() == true)
             {
-                MemoryStream ms = new MemoryStream();
-                PbImage.Image.Save(ms, ImageFormat.Jpeg);
-                byte[] convertirImagen = ms.ToArray();
-
-
                 try
                 {
                     DateTime date = dateTimePicker1.Value;
 
-                    Image_gallery nuevaImagen = new();
-                    nuevaImagen.Image = convertirImagen;
-                    nuevaImagen.Description = RtxtDescripcion.Text;
-                    nuevaImagen.Place = txtLugar.Text;
-                    nuevaImagen.Date = date;
+                    var result = await _imageGalleryService.UpdateImageGalleryAsync(
+                        imageId,
+                        PbImage.Image,
+                        RtxtDescripcion.Text,
+                        txtLugar.Text,
+                        date
+                    );
 
-                    Crud nuevoRegistro = new();
-                    nuevoRegistro.Update(nuevaImagen, Convert.ToInt32(id));
-
-
-                    limpiarCampos();
-
+                    if (result.Success)
+                    {
+                        MessageBox.Show(result.Message, "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        limpiarCampos();
+                    }
+                    else
+                    {
+                        MessageBox.Show(result.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
-                catch (DbException ex)
+                catch (Exception ex)
                 {
-                    MessageBox.Show("No se pudo");
-
+                    MessageBox.Show($"Unexpected error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
 
-        private void btnDelete_Click(object sender, EventArgs e)
+        private async void btnDelete_Click(object sender, EventArgs e)
         {
             var id = txtBuscar.Text;
 
-            if (!(id is null))
-            {           
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                MessageBox.Show("Debes indicar un ID para eliminar", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtBuscar.Focus();
+                return;
+            }
+
+            if (!int.TryParse(id, out int imageId))
+            {
+                MessageBox.Show("ID debe ser un número válido", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtBuscar.Focus();
+                return;
+            }
+
+            var confirmResult = MessageBox.Show(
+                "¿Estás seguro de que quieres eliminar este registro?",
+                "Confirm Delete",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question
+            );
+
+            if (confirmResult == DialogResult.Yes)
+            {
                 try
                 {
-                    Crud nuevoRegistro = new();
-                    nuevoRegistro.Delete(Convert.ToInt32(id));
-                    limpiarCampos();
-                }
-                catch (DbException ex)
-                {
-                    MessageBox.Show("No se pudo: "+ex);
+                    var result = await _imageGalleryService.DeleteImageGalleryAsync(imageId);
 
-                    throw;
+                    if (result.Success)
+                    {
+                        MessageBox.Show(result.Message, "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        limpiarCampos();
+                    }
+                    else
+                    {
+                        MessageBox.Show(result.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Unexpected error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
